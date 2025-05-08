@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session, joinedload
-from app.models.quiz import Quiz, Question
+from app.models.quiz import Quiz
+from app.models.question import Question
 from sqlalchemy.orm import Session
 
 def get_quizzes_by_user_level(db: Session, user_level_id: int):

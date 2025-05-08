@@ -1,0 +1,18 @@
+from sqlalchemy import Column, DateTime, Float, Integer, String, Boolean, ForeignKey, Text
+from app.database import Base  # veya direkt sqlalchemy.declarative_base() kullanıyorsan ona göre
+from app.models.quiz import Quiz
+from app.models.skill import Skill
+from app.models.user import User 
+
+class UserQuizResult(Base):
+    __tablename__ = "user_quiz_results"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey(User.id))
+    quiz_id = Column(Integer, ForeignKey(Quiz.id))
+    skill_id = Column(Integer, ForeignKey(Skill.id))
+    score = Column(Float)
+    correct_count = Column(Integer)
+    total_questions = Column(Integer)
+    taken_at = Column(DateTime)
+
+    

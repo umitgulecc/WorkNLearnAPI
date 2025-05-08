@@ -53,7 +53,7 @@ def update_user_skill_score(db: Session, user_id: int, skill_id: int, score: flo
     existing = db.query(UserSkillScore).filter_by(user_id=user_id, skill_id=skill_id).first()
     if existing:
         existing.total_score += score
-        existing.updated_at = datetime.utcnow()
+        existing.updated_at = datetime.datetime.utcnow()
     else:
         new_score = UserSkillScore(
             user_id=user_id,

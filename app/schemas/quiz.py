@@ -12,18 +12,3 @@ class QuizOverview(BaseModel):
     class Config:
         orm_mode = True
 
-class Option(BaseModel):
-    id: int
-    option_text: str
-
-    class Config:
-        from_attributes = True  # Pydantic V2 uyumlu
-
-class QuestionDetail(BaseModel):
-    id: int
-    content: str
-    question_type: str
-    options: List[Option]
-
-    class Config:
-        from_attributes = True

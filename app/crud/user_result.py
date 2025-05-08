@@ -1,7 +1,10 @@
 from sqlalchemy.orm import Session
-from app.models.quiz import Quiz, Question, QuestionOption
-from app.models.quiz import Quiz, Question, QuestionOption
-from app.models.user_result import UserQuizResult, UserAnswer, UserTopicStats
+from app.models.question_type import QuestionType
+from app.models.quiz import Quiz
+from app.models.question import Question
+from app.models.question_option import QuestionOption
+from app.models.user_quiz_result import UserQuizResult
+from app.models.user_answer import UserAnswer
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from datetime import datetime
@@ -22,7 +25,7 @@ def evaluate_and_save_quiz(db: Session, user_id: int, quiz_id: int, answers: lis
 
         is_correct = False  # default
 
-        if question.question_type == "multiple_choice":
+        if question.question_type_id == 1:
             if not ans.selected_option_id:
                 raise HTTPException(400, "Missing selected_option_id for multiple choice question")
             selected_option = db.query(QuestionOption).filter(
@@ -42,7 +45,7 @@ def evaluate_and_save_quiz(db: Session, user_id: int, quiz_id: int, answers: lis
                 is_correct=is_correct
             ))
 
-        elif question.question_type == "open_ended":
+        elif question.question_type_id == 2:
             if not ans.written_answer:
                 raise HTTPException(400, "Missing written_answer for open-ended question")
 
@@ -99,13 +102,14 @@ def get_quiz_review(db: Session, user_id: int, result_id: int):
     for question in questions:
         options = db.query(QuestionOption).filter_by(question_id=question.id).all()
         selected = answer_map.get(question.id)
-
+        
+        question_type = db.query(QuestionType).filter(QuestionType.id == question.question_type_id).first()
         reviewed_questions.append({
             "id": question.id,
             "content": question.content,
-            "question_type": question.question_type,
+            "question_type": question_type.type_name,
             "explanation": question.explanation,
-            "user_selected_option_id": selected.question_id if selected else None,
+            "user_selected_option_id": selected.selected_option_id if selected else None,
             "options": [
                 {
                     "id": opt.id,

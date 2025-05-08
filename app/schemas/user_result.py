@@ -1,19 +1,9 @@
 from pydantic import BaseModel
 from typing import List
-from app.schemas.quiz import QuestionDetail
 from datetime import datetime
 from typing import Optional
 
-class QuizDetail(BaseModel):
-    id: int
-    title: str
-    description: str
-    questions: List[QuestionDetail]
-
-    class Config:
-        from_attributes = True
-        
-        
+  
 class UserAnswerIn(BaseModel):
     question_id: int
     selected_option_id: Optional[int] = None  # Çoktan seçmeli için
