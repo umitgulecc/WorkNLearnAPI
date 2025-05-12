@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from app.auth.auth import get_current_user
+from app.models.skill import Skill
 from app.models.user import User
 from app.database import SessionLocal
-from app.schemas.user import UserCreate, UserLogin, UserResponse
+from app.models.user_skill_score import UserSkillScore
+from app.schemas.user import SkillScoreOut, UserCreate, UserLogin, UserProfile
 from app.crud.user import create_user, get_user_by_email
 from app.utils import verify_password
 from app.auth.auth import create_access_token
@@ -55,6 +57,37 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     }
     
     
-@router.get("/me", response_model=UserResponse)
-def get_my_profile(current_user: User = Depends(get_current_user)):
-    return current_user
+# @router.get("/me", response_model=UserResponse)
+# def get_my_profile(current_user: User = Depends(get_current_user)):
+#     return current_user
+
+
+@router.get("/me", response_model=UserProfile)
+def get_my_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # Kullanıcı skorlarını al
+    scores = (
+        db.query(UserSkillScore, Skill)
+        .join(Skill, UserSkillScore.skill_id == Skill.id)
+        .filter(UserSkillScore.user_id == current_user.id)
+        .all()
+    )
+
+    skill_scores = [
+        SkillScoreOut(
+            skill_id=score.skill_id,
+            skill_name=skill.name,
+            total_score=score.total_score
+        )
+        for score, skill in scores
+    ]
+
+    return UserProfile(
+        id=current_user.id,
+        full_name=current_user.full_name,
+        email=current_user.email,
+        level_id=current_user.level_id,
+        skill_scores=skill_scores
+    )

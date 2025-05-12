@@ -6,15 +6,26 @@ from app.schemas.quiz import QuizOverview
 from app.crud.quiz import get_quizzes_by_user_level
 from fastapi import APIRouter, Depends, HTTPException
 from app.crud.quiz import get_quiz_with_questions
+from app.crud.quiz import get_quizzes_by_filters
 
 router = APIRouter()
 
 @router.get("/quizzes", response_model=list[QuizOverview])
 def list_quizzes(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user = Depends(get_current_user),
+    quiz_type_id: int | None = None,
+    skill_id: int | None = None,
+    level_id: int | None = None
 ):
-    return get_quizzes_by_user_level(db, current_user.level_id)
+    quizzes = get_quizzes_by_filters(
+        db=db,
+        user_level_id=current_user.level_id,
+        quiz_type_id=quiz_type_id,
+        skill_id=skill_id,
+        level_id=level_id
+    )
+    return quizzes
 
 @router.get("/quiz/{quiz_id}")
 def get_quiz_detail(quiz_id: int, db: Session = Depends(get_db)):

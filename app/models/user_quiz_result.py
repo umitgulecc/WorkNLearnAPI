@@ -15,4 +15,6 @@ class UserQuizResult(Base):
     total_questions = Column(Integer)
     taken_at = Column(DateTime)
 
-    
+
+    def __repr__(self):
+        return f"<UserQuizResult id={self.id} user_id={self.user_id} quiz_id={self.quiz_id} score={self.score}>"

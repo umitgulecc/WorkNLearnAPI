@@ -16,3 +16,6 @@ class User(Base):
     level_id = Column(Integer, ForeignKey(Level.id))  # ✅ Bunu eklemeyi unutma
     skill_scores = relationship("UserSkillScore", back_populates="user") # kullanıcının tüm SLWR skorlarına hızlı erişim
 
+    def __repr__(self):
+        return f"<User id={self.id} email={self.email} level_id={self.level_id}>"
+

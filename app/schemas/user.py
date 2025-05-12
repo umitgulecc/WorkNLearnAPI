@@ -14,11 +14,18 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-# Kullanıcı bilgisi döndürme şeması (şifre hariç)
-class UserResponse(BaseModel):
+
+class SkillScoreOut(BaseModel):
+    skill_id: int
+    skill_name: str
+    total_score: float
+
+class UserProfile(BaseModel):
     id: int
-    email: EmailStr
     full_name: str
+    email: str
+    level_id: int
+    skill_scores: list[SkillScoreOut]
 
     class Config:
-        orm_mode = True  # SQLAlchemy objesini JSON'a çevirmek için
+        from_attributes = True  # eski adı orm_mode
