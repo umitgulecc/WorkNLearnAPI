@@ -10,81 +10,8 @@ from app.models.user_quiz_result import UserQuizResult
 from app.models.user_answer import UserAnswer
 from app.models.user_skill_score import UserSkillScore
 from app.schemas.user_result import UserAnswerIn
-from app.models.user import User
 
-# def evaluate_and_save_quiz(db: Session, user_id: int, quiz_id: int, answers: list[UserAnswerIn]):
-#     quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
-#     if not quiz:
-#         raise HTTPException(404, "Quiz not found")
 
-#     correct_count = 0
-#     user_answer_objects = []
-
-#     for ans in answers:
-#         question = db.query(Question).filter(Question.id == ans.question_id).first()
-#         if not question:
-#             continue
-
-#         is_correct = False  # default
-
-#         if question.question_type_id == 1:
-#             if not ans.selected_option_id:
-#                 raise HTTPException(400, "Missing selected_option_id for multiple choice question")
-#             selected_option = db.query(QuestionOption).filter(
-#                 QuestionOption.id == ans.selected_option_id,
-#                 QuestionOption.question_id == ans.question_id
-#             ).first()
-#             if not selected_option:
-#                 raise HTTPException(400, "Invalid selected option")
-
-#             is_correct = selected_option.is_correct
-#             if is_correct:
-#                 correct_count += 1
-
-#             user_answer_objects.append(UserAnswer(
-#                 question_id=question.id,
-#                 selected_option_id=ans.selected_option_id,
-#                 is_correct=is_correct
-#             ))
-
-#         elif question.question_type_id == 2:
-#             if not ans.written_answer:
-#                 raise HTTPException(400, "Missing written_answer for open-ended question")
-
-#             user_answer_objects.append(UserAnswer(
-#                 question_id=question.id,
-#                 user_answer=ans.written_answer,
-#                 is_correct=False  # open-ended için sonra değerlendirme yapılabilir
-#             ))
-
-#     total_questions = len(answers)
-#     score = correct_count / total_questions if total_questions > 0 else 0
-
-#     result = UserQuizResult(
-#         user_id=user_id,
-#         quiz_id=quiz_id,
-#         skill_id=quiz.skill_id,
-#         score=score,
-#         correct_count=correct_count,
-#         total_questions=total_questions,
-#         taken_at=datetime.utcnow()
-#     )
-#     db.add(result)
-#     db.commit()
-#     db.refresh(result)
-
-#     for ua in user_answer_objects:
-#         ua.result_id = result.id
-#         db.add(ua)
-
-#     db.commit()
-#     return {
-#         "result_id": result.id,
-#         "score": score,
-#         "correct_count": correct_count,
-#         "total_questions": total_questions
-#     }
- 
  
 def update_user_skill_score(db: Session, user_id: int, skill_id: int, score: float):
     existing = db.query(UserSkillScore).filter_by(user_id=user_id, skill_id=skill_id).first()
@@ -100,33 +27,45 @@ def update_user_skill_score(db: Session, user_id: int, skill_id: int, score: flo
         db.add(new_score)
     db.commit()
 
-    
+
+
+# Bir kullanıcının çözdüğü bir quiz'e ait detaylı cevap incelemesini döner.
+#     - Hangi soruya ne cevap verdi?
+#     - Hangi seçenek doğruydu?
+#     - Açıklamalar nedir?    
 def get_quiz_review(db: Session, user_id: int, result_id: int):
+    """
+    Quiz çözümünden sonra kullanıcıya çözümleme ekranı göstermek için:
+    - Kullanıcının seçtiği cevaplar
+    - Doğru seçenekler
+    - Açıklamalar
+    - Soru tipi
+    """
     result = db.query(UserQuizResult).filter_by(id=result_id, user_id=user_id).first()
     if not result:
         raise HTTPException(status_code=404, detail="Result not found")
 
     quiz = db.query(Quiz).filter_by(id=result.quiz_id).first()
-    questions = db.query(Question).filter_by(quiz_id=quiz.id).all()
 
-    # user = db.query(User).first()
-    # print(user)#burada loglama kolaylığı sağladık ve test ettik çalışıyormu diye(__repr__)
-    
-    # Kullanıcının verdiği cevaplar
+    questions = (
+        db.query(Question)
+        .options(joinedload(Question.question_type), joinedload(Question.options))
+        .filter_by(quiz_id=quiz.id)
+        .all()
+    )
+
     answers = db.query(UserAnswer).filter_by(result_id=result.id).all()
     answer_map = {a.question_id: a for a in answers}
 
     reviewed_questions = []
 
     for question in questions:
-        options = db.query(QuestionOption).filter_by(question_id=question.id).all()
         selected = answer_map.get(question.id)
-        
-        question_type = db.query(QuestionType).filter(QuestionType.id == question.question_type_id).first()
+
         reviewed_questions.append({
             "id": question.id,
             "content": question.content,
-            "question_type": question_type.type_name,
+            "question_type": question.question_type.type_name,
             "explanation": question.explanation,
             "user_selected_option_id": selected.selected_option_id if selected else None,
             "options": [
@@ -134,7 +73,7 @@ def get_quiz_review(db: Session, user_id: int, result_id: int):
                     "id": opt.id,
                     "option_text": opt.option_text,
                     "is_correct": opt.is_correct
-                } for opt in options
+                } for opt in question.options
             ]
         })
 
@@ -149,7 +88,10 @@ def get_quiz_review(db: Session, user_id: int, result_id: int):
     }
     
     
-# Kullanıcının her soruya verdiği cevabı dönen bir liste alırsın 
+# Kullanıcının verdiği cevaplara göre:
+#     - Her soru için doğru/yanlış kontrolü yapar
+#     - Tüm cevapları structured şekilde listeler
+#     - Toplam doğru sayısını döner    
 def evaluate_answers(questions: list, answers: list[UserAnswerIn]) -> tuple[list[dict], int]:
     correct_count = 0
     evaluated_answers = []
@@ -188,8 +130,11 @@ def evaluate_answers(questions: list, answers: list[UserAnswerIn]) -> tuple[list
     return evaluated_answers, correct_count
 
 
-# Cevaplar detaylı şekilde user_answers tablosuna kaydediliyor
-# Skor tekrar hesaplanıp return ediliyor
+
+# Quiz değerlendirmesi sonucunu veritabanına kaydeder.
+#     - UserQuizResult oluşturur
+#     - UserAnswer kayıtlarını toplu şekilde ekler
+#     - Skor hesaplayıp geri döner
 def save_user_quiz_result(db, user_id, quiz, evaluated_answers, correct_count):
     total_questions = len(evaluated_answers)
     score = round(correct_count / total_questions, 2) if total_questions else 0
@@ -222,6 +167,9 @@ def save_user_quiz_result(db, user_id, quiz, evaluated_answers, correct_count):
     return result, score
 
 
+# Quiz ID'sine göre:
+#    - İlgili quiz nesnesini
+#    - İlişkili soruları ve her sorunun seçeneklerini birlikte getirir.
 def get_quiz_and_questions(db, quiz_id: int):
     return (
         db.query(Quiz)
