@@ -22,7 +22,6 @@ from app.crud.user_result import update_user_skill_score
 
 router = APIRouter()
 
-router = APIRouter()
 @router.post("/submit-quiz")
 def submit_quiz(
     payload: SubmitQuizRequest,

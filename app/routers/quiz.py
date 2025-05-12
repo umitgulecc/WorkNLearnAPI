@@ -3,7 +3,7 @@ from app.database import get_db
 from app.auth.auth import get_current_user
 from app.models.question_type import QuestionType
 from app.schemas.quiz import QuizOverview
-from app.crud.quiz import get_quizzes_by_user_level
+from app.crud.quiz import get_quizzes_by_filters
 from fastapi import APIRouter, Depends, HTTPException
 from app.crud.quiz import get_quiz_with_questions
 from app.crud.quiz import get_quizzes_by_filters
