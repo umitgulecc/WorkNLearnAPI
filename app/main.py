@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from app.database import Base, engine
 from app.routers import user
 from app.routers import quiz  # 👈 bu satır gerekli
-from app.routers import user_result
+from app.routers import submission
+from app.routers import review
 
 app = FastAPI( 
     title="WORK-N-LEARN API",
@@ -21,4 +22,5 @@ def root():
 
 app.include_router(user.router)
 app.include_router(quiz.router)
-app.include_router(user_result.router)
+app.include_router(submission.router)
+app.include_router(review.router)

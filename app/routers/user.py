@@ -12,6 +12,7 @@ from app.utils import verify_password
 from app.auth.auth import create_access_token
 from app.schemas.user import UserUpdate
 from app.schemas.user import UserBasicOut
+from app.crud.user import get_all_users
 
 router = APIRouter(prefix="", tags=["🧍 Kullanıcı İşlemleri"])  # <-- BU SATIR ÇOK ÖNEMLİ
 
@@ -130,3 +131,13 @@ def delete_my_account(
     db.delete(user)
     db.commit()
     return {"detail": "✅ Hesabınız başarıyla silindi."}
+
+
+
+@router.get("/all-users", response_model=list[UserBasicOut])
+def list_all_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # 🧠 İsteğe bağlı: burada admin kontrolü de yapılabilir
+    return get_all_users(db)

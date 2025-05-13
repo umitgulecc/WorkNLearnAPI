@@ -36,3 +36,36 @@ def update_user_level(db: Session, user_id: int, new_level_id: int):
         user.level_id = new_level_id
         db.commit()
     return user
+
+
+def update_user_password(db: Session, user_id: int, new_password: str):
+    """
+    Kullanıcının şifresini günceller.
+    """
+    from app.utils import hash_password
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.password_hash = hash_password(new_password)
+        db.commit()
+        return True
+    return False
+
+
+def get_all_users(db: Session):
+    """
+    Tüm kullanıcıları getirir.
+    (Yönetici sayfası, test, analiz vs. için kullanılabilir)
+    """
+    return db.query(User).all()
+
+
+def delete_user(db: Session, user_id: int):
+    """
+    Belirtilen ID'ye sahip kullanıcıyı siler.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        db.delete(user)
+        db.commit()
+        return True
+    return False
