@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
-from fastapi import HTTPException
+from fastapi import HTTPException, logger
 from datetime import datetime
 
 from app.models.quiz import Quiz
@@ -17,7 +17,7 @@ def update_user_skill_score(db: Session, user_id: int, skill_id: int, score: flo
     existing = db.query(UserSkillScore).filter_by(user_id=user_id, skill_id=skill_id).first()
     if existing:
         existing.total_score += score
-        existing.updated_at = datetime.datetime.utcnow()
+        existing.updated_at = datetime.utcnow()
     else:
         new_score = UserSkillScore(
             user_id=user_id,
@@ -107,13 +107,13 @@ def evaluate_answers(questions: list, answers: list[UserAnswerIn]) -> tuple[list
         is_correct = False
         selected_option_id = getattr(user_ans, "selected_option_id", None)
         user_written_answer = getattr(user_ans, "written_answer", None)
-
-        if q.question_type == "multiple_choice":
+        print(f"deneme:{q.question_type}")
+        if q.question_type_id == 1:
             correct_option = next((opt for opt in q.options if opt.is_correct), None)
             if selected_option_id == correct_option.id:
                 is_correct = True
 
-        elif q.question_type == "written":
+        elif q.question_type_id == 2:
             # Şimdilik yazılı cevabı varsa doğru sayıyoruz (AI yoksa)
             is_correct = True if user_written_answer else False
 

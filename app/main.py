@@ -6,7 +6,11 @@ from app.routers import user
 from app.routers import quiz  # 👈 bu satır gerekli
 from app.routers import user_result
 
-app = FastAPI()
+app = FastAPI( 
+    title="WORK-N-LEARN API",
+    description="İş İngilizcesi öğrenme sistemine ait tüm endpoint dokümantasyonu",
+    version="1.0.0"
+    )
 
 Base.metadata.create_all(bind=engine)
 
@@ -15,10 +19,6 @@ Base.metadata.create_all(bind=engine)
 def root():
     return {"message": "WORK-N-LEARN API çalışıyor!"}
 
-# Kullanıcı router'ını ekle
 app.include_router(user.router)
-
-# 👇 Bu satır olmazsa endpoint Swagger’da görünmez
 app.include_router(quiz.router)
-
 app.include_router(user_result.router)

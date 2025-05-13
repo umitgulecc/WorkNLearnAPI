@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.crud.quiz import get_quiz_with_questions
 from app.crud.quiz import get_quizzes_by_filters
 
-router = APIRouter()
+router = APIRouter(prefix="/quiz", tags=["🧪 Quiz İşlemleri"])
 
 @router.get("/quizzes", response_model=list[QuizOverview])
 def list_quizzes(
@@ -33,9 +33,6 @@ def get_quiz_detail(quiz_id: int, db: Session = Depends(get_db)):
     if not quiz:
         raise HTTPException(status_code=404, detail="Quiz not found")
 
-    # type name'leri hazırlıyoruz
-    all_types = db.query(QuestionType).all()
-    type_dict = {t.id: t.type_name for t in all_types}
 
     # Quiz detayını manuel oluştur
     quiz_data = {
@@ -49,7 +46,8 @@ def get_quiz_detail(quiz_id: int, db: Session = Depends(get_db)):
         quiz_data["questions"].append({
             "id": question.id,
             "content": question.content,
-            "question_type": type_dict.get(question.question_type_id),
+            "explanation": question.explanation,
+            "question_type": question.question_type.type_name,
             "options": [
                 {
                     "id": opt.id,

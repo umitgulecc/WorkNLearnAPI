@@ -29,3 +29,17 @@ class UserProfile(BaseModel):
 
     class Config:
         from_attributes = True  # eski adı orm_mode
+        
+        
+class UserUpdate(BaseModel):
+    full_name: str | None = None
+    password: str | None = None
+    
+class UserBasicOut(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    level_id: int
+
+    class Config:
+        from_attributes = True

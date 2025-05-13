@@ -10,8 +10,10 @@ from app.schemas.user import SkillScoreOut, UserCreate, UserLogin, UserProfile
 from app.crud.user import create_user, get_user_by_email
 from app.utils import verify_password
 from app.auth.auth import create_access_token
+from app.schemas.user import UserUpdate
+from app.schemas.user import UserBasicOut
 
-router = APIRouter()  # <-- BU SATIR ÇOK ÖNEMLİ
+router = APIRouter(prefix="", tags=["🧍 Kullanıcı İşlemleri"])  # <-- BU SATIR ÇOK ÖNEMLİ
 
 # Veritabanı bağlantısı
 def get_db():
@@ -91,3 +93,40 @@ def get_my_profile(
         level_id=current_user.level_id,
         skill_scores=skill_scores
     )
+    
+    
+@router.put("/me", response_model=UserBasicOut)
+def update_my_profile(
+    updates: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Kullanıcının kendi adını ve şifresini güncellemesine izin verir.
+    """
+    # Oturuma bağlı hale getir
+    user = db.merge(current_user)
+
+    if updates.full_name:
+        user.full_name = updates.full_name
+    if updates.password:
+        from app.utils import hash_password
+        user.password_hash = hash_password(updates.password)
+
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.delete("/me", status_code=200)
+def delete_my_account(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Kullanıcının kendi hesabını silmesini sağlar.
+    """
+    user = db.merge(current_user)
+    db.delete(user)
+    db.commit()
+    return {"detail": "✅ Hesabınız başarıyla silindi."}

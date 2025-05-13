@@ -20,7 +20,7 @@ from app.crud.user_result import (
 )
 from app.crud.user_result import update_user_skill_score
 
-router = APIRouter()
+router = APIRouter(prefix="/result", tags=["📊 Quiz Sonuçları"])
 
 @router.post("/submit-quiz")
 def submit_quiz(
@@ -28,14 +28,30 @@ def submit_quiz(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """
+    Quiz cevaplarını alır, değerlendirir, sonucu ve cevapları kaydeder.
+    Ardından kullanıcının beceri skorunu günceller.
+    """
     quiz = get_quiz_and_questions(db, payload.quiz_id)
-
     if not quiz:
-        raise HTTPException(404, "Quiz not found")
+        raise HTTPException(status_code=404, detail="Quiz not found")
 
     evaluated_answers, correct_count = evaluate_answers(quiz.questions, payload.answers)
-    result, score = save_user_quiz_result(db, current_user.id, quiz, evaluated_answers, correct_count)
-    update_user_skill_score(db=db, user_id=current_user.id, skill_id=quiz.skill_id, score=score)
+
+    result, score = save_user_quiz_result(
+        db=db,
+        user_id=current_user.id,
+        quiz=quiz,
+        evaluated_answers=evaluated_answers,
+        correct_count=correct_count
+    )
+
+    update_user_skill_score(
+        db=db,
+        user_id=current_user.id,
+        skill_id=quiz.skill_id,
+        score=score
+    )
 
     return {
         "detail": "Quiz submitted successfully",

@@ -8,3 +8,6 @@ class QuestionType(Base):
     type_name = Column(String, unique=True, nullable=False)
 
     questions = relationship("Question", back_populates="question_type")
+    
+    def __repr__(self):
+        return f"<QuestionType id={self.id} name='{self.type_name}'>"
