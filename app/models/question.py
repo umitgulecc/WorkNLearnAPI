@@ -13,5 +13,5 @@ class Question(Base):
     topic_id = Column(Integer, ForeignKey(Topic.id))
     question_type_id = Column(Integer, ForeignKey(QuestionType.id))  # Foreign key to question_types table
 
-    options = relationship("QuestionOption", backref="question")
+    options = relationship("QuestionOption", backref="question", cascade="all, delete-orphan")
     question_type = relationship("QuestionType", back_populates="questions")

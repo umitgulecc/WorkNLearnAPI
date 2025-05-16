@@ -6,13 +6,14 @@ from app.models.skill import Skill
 from app.models.user import User
 from app.database import SessionLocal
 from app.models.user_skill_score import UserSkillScore
-from app.schemas.user import SkillScoreOut, UserCreate, UserLogin, UserProfile
-from app.crud.user import create_user, get_user_by_email
-from app.utils import verify_password
+from app.schemas.user import SkillScoreOut, UserCreate, UserProfile
+from app.crud.user import create_user, get_user_by_email, get_user_by_id
+from app.utils.password import verify_password
 from app.auth.auth import create_access_token
 from app.schemas.user import UserUpdate
 from app.schemas.user import UserBasicOut
 from app.crud.user import get_all_users
+from app.utils.permissions import has_access_to_user, is_manager
 
 router = APIRouter(prefix="", tags=["🧍 Kullanıcı İşlemleri"])  # <-- BU SATIR ÇOK ÖNEMLİ
 
@@ -139,5 +140,26 @@ def list_all_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # 🧠 İsteğe bağlı: burada admin kontrolü de yapılabilir
+    # ✅ Erişim kontrolü: yalnızca Genel Müdür görebilir
+    if not is_manager(current_user):
+        raise HTTPException(status_code=403, detail="Bu veriye yalnızca genel müdür erişebilir.")
+
     return get_all_users(db)
+
+
+
+@router.get("/user/{user_id}", response_model=UserProfile)
+def get_user_profile(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if not has_access_to_user(current_user, user_id, db):
+        raise HTTPException(status_code=403, detail="Bu kullanıcıya erişim yetkiniz yok.")
+
+    user = get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
+
+    # Skorları vs. hesaplayıp dön
+    ...

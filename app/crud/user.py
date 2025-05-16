@@ -2,7 +2,7 @@
  
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.utils import hash_password
+from app.utils.password import hash_password
 
 # Kullanıcıyı oluştur
 def create_user(db: Session, email: str, full_name: str, password: str):

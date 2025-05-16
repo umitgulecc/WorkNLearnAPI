@@ -4,14 +4,6 @@ from app.models.user_skill_score import UserSkillScore
 
 
 
-
-
-
-
-
-
-
-
 def update_user_skill_score(db: Session, user_id: int, skill_id: int, score: float):
     existing = db.query(UserSkillScore).filter_by(user_id=user_id, skill_id=skill_id).first()
     if existing:

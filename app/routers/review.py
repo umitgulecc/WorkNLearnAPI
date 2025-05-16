@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth.auth import get_current_user
 from app.crud.review import get_quiz_review
 from app.models.user import User
+from app.models.user_quiz_result import UserQuizResult
 from app.schemas.review import QuizReview
+from app.utils.permissions import has_access_to_user
 
 router = APIRouter(tags=["🔍 Quiz İncelemesi"])
 
@@ -16,6 +18,15 @@ def review_quiz(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    
+    result = db.query(UserQuizResult).filter_by(id=result_id).first()
+    if not result:
+        raise HTTPException(status_code=404, detail="Sonuç bulunamadı.")
+
+    # ⛔ Yetki kontrolü
+    if not has_access_to_user(current_user, result.user_id, db):
+        raise HTTPException(status_code=403, detail="Bu sonucu görme yetkiniz yok.")
+
     """
     Kullanıcının çözmüş olduğu quiz'e ait cevapları, açıklamaları ve doğruluk durumunu döner.
     """

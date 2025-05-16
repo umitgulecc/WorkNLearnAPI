@@ -16,7 +16,7 @@ class Quiz(Base):
     quiz_type_id = Column(Integer, ForeignKey(QuizType.id), nullable=False)
     
     quiz_type = relationship("QuizType", back_populates="quizzes")
-    questions = relationship("Question", backref="quiz")
+    questions = relationship("Question", backref="quiz", cascade="all, delete-orphan")
 
 
     def __repr__(self):

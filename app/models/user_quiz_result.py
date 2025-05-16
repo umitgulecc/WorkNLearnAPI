@@ -3,7 +3,7 @@ from app.database import Base  # veya direkt sqlalchemy.declarative_base() kulla
 from app.models.quiz import Quiz
 from app.models.skill import Skill
 from app.models.user import User 
-
+from sqlalchemy.orm import relationship
 class UserQuizResult(Base):
     __tablename__ = "user_quiz_results"
     id = Column(Integer, primary_key=True)
@@ -15,6 +15,7 @@ class UserQuizResult(Base):
     total_questions = Column(Integer)
     taken_at = Column(DateTime)
 
+    answers = relationship("UserAnswer", backref="result", cascade="all, delete-orphan")  # ✅ BURASI EKLENECEK
 
     def __repr__(self):
         return f"<UserQuizResult id={self.id} user_id={self.user_id} quiz_id={self.quiz_id} score={self.score}>"
