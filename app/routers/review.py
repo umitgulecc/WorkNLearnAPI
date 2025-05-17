@@ -18,16 +18,13 @@ def review_quiz(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    
     result = db.query(UserQuizResult).filter_by(id=result_id).first()
     if not result:
         raise HTTPException(status_code=404, detail="Sonuç bulunamadı.")
 
-    # ⛔ Yetki kontrolü
-    if not has_access_to_user(current_user, result.user_id, db):
+    # ⛔ Yetki kontrolü (target → User nesnesi olmalı)
+    target_user = db.query(User).filter_by(id=result.user_id).first()
+    if not has_access_to_user(current_user, target_user):
         raise HTTPException(status_code=403, detail="Bu sonucu görme yetkiniz yok.")
 
-    """
-    Kullanıcının çözmüş olduğu quiz'e ait cevapları, açıklamaları ve doğruluk durumunu döner.
-    """
     return get_quiz_review(db, user_id=current_user.id, result_id=result_id)

@@ -2,10 +2,8 @@
 
 from fastapi import FastAPI
 from app.database import Base, engine
-from app.routers import user
-from app.routers import quiz  # 👈 bu satır gerekli
-from app.routers import submission
-from app.routers import review
+from app.routers import user, quiz, submission, review, personalized_quiz
+
 
 app = FastAPI( 
     title="WORK-N-LEARN API",
@@ -24,3 +22,4 @@ app.include_router(user.router)
 app.include_router(quiz.router)
 app.include_router(submission.router)
 app.include_router(review.router)
+app.include_router(personalized_quiz.router)
