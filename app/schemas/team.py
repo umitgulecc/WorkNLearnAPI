@@ -7,7 +7,7 @@ class TeamResult(BaseModel):
     quiz_title: str
     score: int
     taken_at: datetime
-
+    result_id: int
     class Config:
         from_attributes = True
 

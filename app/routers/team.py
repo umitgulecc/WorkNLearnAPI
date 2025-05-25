@@ -19,41 +19,45 @@ def get_db():
         db.close()
         
         
-@router.get("/results", response_model=list[TeamResult])
-def get_team_results(
+@router.get("/results/{user_id}", response_model=list[TeamResult])
+def get_results_for_user(
+    user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Sadece müdür görebilir
+    # Sadece müdür erişebilir
     if current_user.role_id != 2:
-        raise HTTPException(status_code=403, detail="Sadece departman müdürleri erişebilir.")
+        raise HTTPException(status_code=403, detail="Sadece müdürler erişebilir.")
 
-    # Müdürün yönettiği departmanı al
+    # Müdürün yönettiği departmanı bul
     department = db.query(Department).filter(Department.manager_id == current_user.id).first()
     if not department:
-        return []
+        raise HTTPException(status_code=404, detail="Departman bulunamadı.")
 
-    # Departmandaki kullanıcıların quiz sonuçlarını al
-    members = (
+    # Seçilen kullanıcı bu departmana ait mi?
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or user.department_id != department.id:
+        raise HTTPException(status_code=403, detail="Bu kullanıcı sizin departmanınıza ait değil.")
+
+    # Bu kullanıcıya ait tüm sonuçları al
+    results = (
         db.query(UserQuizResult)
-        .join(User, UserQuizResult.user_id == User.id)
         .join(Quiz, UserQuizResult.quiz_id == Quiz.id)
-        .filter(User.department_id == department.id)
-        .options(joinedload(UserQuizResult.user), joinedload(UserQuizResult.quiz))
+        .filter(UserQuizResult.user_id == user_id)
+        .options(joinedload(UserQuizResult.quiz))
         .all()
     )
 
-    results = []
-    for r in members:
-        results.append(TeamResult(
-            user_id=r.user.id,
-            full_name=r.user.full_name,
+    return [
+        TeamResult(
+            user_id=user.id,
+            full_name=user.full_name,
             quiz_title=r.quiz.title,
             score=r.score,
-            taken_at=r.taken_at
-        ))
-
-    return results
+            taken_at=r.taken_at,
+            result_id=r.id
+        ) for r in results
+    ]
 
 
 
