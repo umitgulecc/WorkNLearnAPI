@@ -33,7 +33,9 @@ def generate_questions_with_gpt(topics: list[Topic]):
                 {"text": "Option C", "is_correct": False},
                 {"text": "Option D", "is_correct": False}
             ],
-            "topic_id": topic.id
+            "topic_id": topic.id,
+            "explanation": "Because X is commonly used in business contexts as..."
+
         }
         for topic in topics
     ]
@@ -55,7 +57,7 @@ def create_personalized_quiz(db: Session, user_id: int):
     questions_data = generate_questions_with_gpt(topics)
 
     # Quiz türünü al
-    quiz_type = db.query(QuizType).filter(QuizType.name == "GPT Destekli").first()
+    quiz_type = db.query(QuizType).filter(QuizType.name == "GPT Destekli Geliştirme Testleri").first()
     if not quiz_type:
         raise HTTPException(status_code=400, detail="GPT Destekli quiz türü tanımlı değil.")
 
@@ -64,11 +66,12 @@ def create_personalized_quiz(db: Session, user_id: int):
         title="GPT Destekli Kişisel Quiz",
         description="Zayıf olduğunuz konulara göre oluşturulmuştur.",
         skill_id=user.skill_scores[0].skill_id if user.skill_scores else 1,  # varsayılan skill
-        level_id=user.level_id,
+        level_id=user.role_id,
         is_placement_test=False,
         quiz_type_id=quiz_type.id,
         is_personalized=True,
-        owner_user_id=user.id
+        owner_user_id=user.id,
+        
     )
     db.add(new_quiz)
     db.commit()
@@ -82,7 +85,9 @@ def create_personalized_quiz(db: Session, user_id: int):
             quiz_id=new_quiz.id,
             content=q["content"],
             topic_id=q["topic_id"],
-            question_type_id=question_type.id
+            question_type_id=question_type.id,
+            explanation=q.get("explanation", "GPT tarafından otomatik oluşturulmuştur.")  # ✅ burada
+
         )
         db.add(question)
         db.commit()

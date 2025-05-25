@@ -33,7 +33,7 @@ def update_user_level(db: Session, user_id: int, new_level_id: int):
     """
     user = db.query(User).filter(User.id == user_id).first()
     if user:
-        user.level_id = new_level_id
+        user.role_id = new_level_id
         db.commit()
     return user
 

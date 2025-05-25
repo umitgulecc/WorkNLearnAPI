@@ -40,3 +40,16 @@ class QuizDetailOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+
+
+class QuizOverviewWithResultId(BaseModel):
+    quiz_id: int
+    title: str
+    level_id: int
+    result_id: int
+
+    class Config:
+        from_attributes = True
+

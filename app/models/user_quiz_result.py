@@ -16,6 +16,8 @@ class UserQuizResult(Base):
     taken_at = Column(DateTime)
 
     answers = relationship("UserAnswer", backref="result", cascade="all, delete-orphan")  # ✅ BURASI EKLENECEK
-
+    user = relationship("User", back_populates="quiz_results")
+    quiz = relationship("Quiz", back_populates="results")
+    
     def __repr__(self):
         return f"<UserQuizResult id={self.id} user_id={self.user_id} quiz_id={self.quiz_id} score={self.score}>"

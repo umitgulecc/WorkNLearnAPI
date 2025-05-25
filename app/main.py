@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from app.database import Base, engine
-from app.routers import user, quiz, submission, review, personalized_quiz
+from app.routers import user, quiz, submission, review, personalized_quiz, team
 
 
 app = FastAPI( 
@@ -23,3 +23,4 @@ app.include_router(quiz.router)
 app.include_router(submission.router)
 app.include_router(review.router)
 app.include_router(personalized_quiz.router)
+app.include_router(team.router)

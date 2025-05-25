@@ -20,6 +20,7 @@ class Quiz(Base):
     quiz_type = relationship("QuizType", back_populates="quizzes")
     questions = relationship("Question", backref="quiz", cascade="all, delete-orphan")
     owner_user = relationship("User", back_populates="quizzes" )
+    results = relationship("UserQuizResult", back_populates="quiz")
 
     def __repr__(self):
         return f"<Quiz id={self.id} title='{self.title}' skill_id={self.skill_id} type_id={self.quiz_type_id}>"

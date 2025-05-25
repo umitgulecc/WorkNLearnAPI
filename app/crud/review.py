@@ -47,7 +47,7 @@ def get_quiz_review(db: Session, user_id: int, result_id: int) -> QuizReview:
             id=question.id,
             content=question.content,
             question_type=question.question_type.type_name,
-            explanation=question.explanation,
+            explanation=question.explanation or "GPT tarafından açıklama verilmemiştir.",
             user_selected_option_id=selected.selected_option_id if selected else None,
             options=[
                 ReviewedOption(
