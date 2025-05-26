@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth.auth import get_current_user
 from app.models.quiz import Quiz
-from app.models.user import User
 from app.models.user_quiz_result import UserQuizResult
 from app.schemas.quiz import QuestionOptionOut, QuizDetailOut, QuizOverview, QuizOverviewWithResultId, QuizQuestionOut
 from app.crud.quiz import get_quizzes_by_filters
@@ -88,3 +87,6 @@ def get_solved_quizzes(
     )
 
     return results
+
+
+

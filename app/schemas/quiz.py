@@ -4,7 +4,7 @@ from typing import Optional, List
 class QuizOverview(BaseModel):
     id: int
     title: str
-    description: str
+    description: Optional[str] = ""  
     skill_id: int
     level_id: int
     is_placement_test: bool

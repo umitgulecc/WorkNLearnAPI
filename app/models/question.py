@@ -12,6 +12,8 @@ class Question(Base):
     explanation = Column(Text)
     topic_id = Column(Integer, ForeignKey(Topic.id))
     question_type_id = Column(Integer, ForeignKey(QuestionType.id))  # Foreign key to question_types table
+    
+    open_ended_answer = Column(Text, nullable=True)  # ✅ Open-ended sorular için doğru cevap
 
     options = relationship("QuestionOption", backref="question", cascade="all, delete-orphan")
     question_type = relationship("QuestionType", back_populates="questions")
