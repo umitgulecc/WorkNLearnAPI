@@ -15,13 +15,6 @@ from app.schemas.review import QuizReview, ReviewedQuestion, ReviewedOption
 #     - Hangi seçenek doğruydu?
 #     - Açıklamalar nedir?    
 def get_quiz_review(db: Session, user_id: int, result_id: int) -> QuizReview:
-    """
-    Quiz çözümünden sonra kullanıcıya çözümleme ekranı göstermek için:
-    - Kullanıcının seçtiği cevaplar
-    - Doğru seçenekler
-    - Açıklamalar
-    - Soru tipi
-    """
     result = db.query(UserQuizResult).filter_by(id=result_id, user_id=user_id).first()
     if not result:
         raise HTTPException(status_code=404, detail="Result not found")
@@ -43,20 +36,33 @@ def get_quiz_review(db: Session, user_id: int, result_id: int) -> QuizReview:
     for question in questions:
         selected = answer_map.get(question.id)
 
-        reviewed_questions.append(ReviewedQuestion(
-            id=question.id,
-            content=question.content,
-            question_type=question.question_type.type_name,
-            explanation=question.explanation or "GPT tarafından açıklama verilmemiştir.",
-            user_selected_option_id=selected.selected_option_id if selected else None,
-            options=[
-                ReviewedOption(
-                    id=opt.id,
-                    option_text=opt.option_text,
-                    is_correct=opt.is_correct
-                ) for opt in question.options
-            ]
-        ))
+        if question.question_type_id == 1:  # Multiple Choice
+            reviewed_questions.append(ReviewedQuestion(
+                id=question.id,
+                content=question.content,
+                question_type=question.question_type.type_name,
+                explanation=question.explanation or "GPT tarafından açıklama verilmemiştir.",
+                user_selected_option_id=selected.selected_option_id if selected else None,
+                options=[
+                    ReviewedOption(
+                        id=opt.id,
+                        option_text=opt.option_text,
+                        is_correct=opt.is_correct
+                    ) for opt in question.options
+                ]
+            ))
+
+        elif question.question_type_id == 2:  # Open-ended
+            reviewed_questions.append(ReviewedQuestion(
+                id=question.id,
+                content=question.content,
+                question_type=question.question_type.type_name,
+                explanation=question.explanation or "GPT tarafından açıklama verilmemiştir.",
+                user_answer=selected.user_answer if selected else None,
+                expected_answer=question.open_ended_answer,
+                is_correct=selected.is_correct if selected else None,
+                options=[]  # Open-ended için opsiyon yok
+            ))
 
     return QuizReview(
         quiz_id=quiz.id,

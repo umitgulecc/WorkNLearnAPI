@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.models.quiz import Quiz
 from app.models.question import Question
@@ -8,6 +9,14 @@ from app.models.skill import Skill
 from app.models.topic import Topic
 from app.models.question_type import QuestionType
 from app.models.user import User
+from app.models.quiz_type import QuizType
+from app.models.question import Question
+from app.models.question_option import QuestionOption
+from app.models.topic import Topic
+from app.models.question_type import QuestionType
+from app.models.user import User
+
+from sqlalchemy.orm import Session
 
 # 1️⃣ Zayıf konularını getir
 def get_user_weak_topics(db: Session, user_id: int, limit: int = 3):
@@ -92,6 +101,58 @@ def create_personalized_quiz(db: Session, user_id: int):
         db.add(question)
         db.commit()
         db.refresh(question)
+
+        for opt in q["options"]:
+            db.add(QuestionOption(
+                question_id=question.id,
+                option_text=opt["text"],
+                is_correct=opt["is_correct"]
+            ))
+
+    db.commit()
+    return new_quiz
+
+
+
+def create_personalized_placement_quiz(db: Session, user) -> Quiz:
+    # Kullanıcının zayıf topic'lerini çek
+    weak_stats = db.query(Topic).limit(1).all()  # Sahte veriyle test için
+    if not weak_stats:
+        return None
+
+    topics = db.query(Topic).filter(Topic.id.in_([t.id for t in weak_stats])).all()
+    questions_data = generate_questions_with_gpt(topics)
+
+    # Gerekli metadata
+    quiz_type_id = db.query(QuizType).filter(QuizType.name == "GPT Destekli Yerleştirme Testleri").first().id
+    question_type = db.query(QuestionType).filter(QuestionType.id == 1).first()
+
+    # Quiz oluştur
+    new_quiz = Quiz(
+        title="Kişisel Yerleştirme Testi (GPT)",
+        description="GPT tarafından zayıf olduğunuz konulara göre oluşturulmuştur.",
+        skill_id=user.level_id,  # veya user.skill_id varsa onu kullan
+        level_id=user.level_id,
+        is_placement_test=True,
+        quiz_type_id=quiz_type_id,
+        is_personalized=True,
+        owner_user_id=user.id
+    )
+    db.add(new_quiz)
+    db.commit()
+    db.refresh(new_quiz)
+
+    # Soruları ekle
+    for q in questions_data:
+        question = Question(
+            quiz_id=new_quiz.id,
+            content=q["content"],
+            topic_id=q["topic_id"],
+            question_type_id=question_type.id
+        )
+        db.add(question)
+        db.flush()  # ID almak için refresh yerine daha uygun
+
 
         for opt in q["options"]:
             db.add(QuestionOption(

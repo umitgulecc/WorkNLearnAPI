@@ -3,6 +3,8 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.utils.password import hash_password
+from sqlalchemy import func
+from app.models.user_quiz_result import UserQuizResult
 
 # Kullanıcıyı oluştur
 def create_user(db: Session, email: str, full_name: str, password: str):
@@ -69,3 +71,10 @@ def delete_user(db: Session, user_id: int):
         db.commit()
         return True
     return False
+
+
+def get_user_total_score(db: Session, user_id: int) -> float:
+    total = db.query(func.sum(UserQuizResult.score))\
+              .filter(UserQuizResult.user_id == user_id)\
+              .scalar()
+    return total or 0.0

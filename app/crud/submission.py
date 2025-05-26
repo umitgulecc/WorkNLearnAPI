@@ -20,26 +20,25 @@ def evaluate_answers(questions: list, answers: list[UserAnswerIn]) -> tuple[list
     correct_count = 0
     evaluated_answers = []
 
-    # Kullanıcının cevaplarını dict'e çeviriyoruz: question_id → cevap
     answers_dict = {a.question_id: a for a in answers}
 
     for q in questions:
         user_ans = answers_dict.get(q.id)
         if not user_ans:
-            continue  # bu soru cevaplanmamış
+            continue
 
         is_correct = False
         selected_option_id = getattr(user_ans, "selected_option_id", None)
-        user_written_answer = getattr(user_ans, "written_answer", None)
-        print(f"deneme:{q.question_type}")
-        if q.question_type_id == 1:
+        user_written_answer = (getattr(user_ans, "written_answer", "") or "").strip().lower()
+
+        if q.question_type_id == 1:  # Çoktan seçmeli
             correct_option = next((opt for opt in q.options if opt.is_correct), None)
-            if selected_option_id == correct_option.id:
+            if correct_option and selected_option_id == correct_option.id:
                 is_correct = True
 
-        elif q.question_type_id == 2:
-            # Şimdilik yazılı cevabı varsa doğru sayıyoruz (AI yoksa)
-            is_correct = True if user_written_answer else False
+        elif q.question_type_id == 2:  # Açık uçlu
+            expected = (q.open_ended_answer or "").strip().lower()
+            is_correct = expected == user_written_answer
 
         if is_correct:
             correct_count += 1
@@ -55,12 +54,13 @@ def evaluate_answers(questions: list, answers: list[UserAnswerIn]) -> tuple[list
 
 
 
+
 # Quiz değerlendirmesi sonucunu veritabanına kaydeder.
 #     - UserQuizResult oluşturur
 #     - UserAnswer kayıtlarını toplu şekilde ekler
 #     - Skor hesaplayıp geri döner
 def save_user_quiz_result(db, user_id, quiz, evaluated_answers, correct_count):
-    total_questions = len(evaluated_answers)
+    total_questions = len(quiz.questions)  # 🔧 Burayı düzelttik
     score = round(correct_count / total_questions, 2) if total_questions else 0
 
     result = UserQuizResult(

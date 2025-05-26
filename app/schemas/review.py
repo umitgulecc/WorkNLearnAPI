@@ -15,11 +15,19 @@ class ReviewedQuestion(BaseModel):
     content: str
     question_type: str
     explanation: str
-    user_selected_option_id: Optional[int]  
-    options: List[ReviewedOption]
+
+    # Multiple-choice için
+    user_selected_option_id: Optional[int] = None
+    options: List[ReviewedOption] = []
+
+    # Open-ended için
+    user_answer: Optional[str] = None
+    expected_answer: Optional[str] = None
+    is_correct: Optional[bool] = None
 
     class Config:
         from_attributes = True
+
 
 class QuizReview(BaseModel):
     quiz_id: int

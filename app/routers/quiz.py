@@ -24,6 +24,7 @@ def list_quizzes(
     quizzes = get_quizzes_by_filters(
         db=db,
         user_level_id=current_user.level_id,
+        current_user_id=current_user.id,  # ✅ yeni parametre
         quiz_type_id=quiz_type_id,
         skill_id=skill_id,
         level_id=level_id,

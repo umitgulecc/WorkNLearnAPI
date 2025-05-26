@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.crud.user import update_user_level
 from app.database import get_db
 from app.auth.auth import get_current_user
 from app.crud.quiz import get_quiz_with_questions
@@ -11,8 +12,9 @@ from app.models.user_answer import UserAnswer
 from app.models.user_quiz_result import UserQuizResult
 from app.schemas.submission import SubmitQuizRequest
 from app.models.user import User
-
+from app.crud.personalized_quiz import create_personalized_placement_quiz
 router = APIRouter(tags=["📤 Quiz Gönderimi"])
+LEVEL_UP_SCORE_THRESHOLD = 20 
 
 @router.post("/submit-quiz")
 def submit_quiz(
@@ -20,13 +22,9 @@ def submit_quiz(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Quiz cevaplarını alır, değerlendirir, sonucu ve cevapları kaydeder.
-    Ardından kullanıcının beceri skorunu günceller.
-    """
     quiz = get_quiz_with_questions(db, payload.quiz_id)
     if not quiz:
-        return {"Error":"Quiz not found"}
+        raise HTTPException(status_code=404, detail="Quiz not found")
 
     evaluated_answers, correct_count = evaluate_answers(quiz.questions, payload.answers)
 
@@ -44,70 +42,42 @@ def submit_quiz(
         skill_id=quiz.skill_id,
         score=score
     )
+    from app.crud.user import get_user_total_score
 
+    total_score = get_user_total_score(db, current_user.id)
+
+    if total_score >= LEVEL_UP_SCORE_THRESHOLD:
+        # Bu kullanıcı artık seviye atlama sınavına girmeye hak kazandı.
+        # İlgili yerleştirme sınavına yönlendirme yapılabilir
+        print("✅ Level-up placement test için hazır!")
+        
+    
+    LEVEL_PASS_SCORE = 0.7  # geçme barajı
+    NEXT_LEVEL_ID = current_user.level_id + 1
+
+    if quiz.quiz_type_id == 1:
+        if score >= LEVEL_PASS_SCORE:
+            update_user_level(db, current_user.id, NEXT_LEVEL_ID)
+            print("✅ Seviye atladı!")
+        else:
+            print("❌ Seviye atlama sınavından kaldı, GPT'den özel sınav hazırlanacak.")
+            try:
+                new_quiz = create_personalized_placement_quiz(db, current_user)
+                return {
+                    "detail": "Placement sınavı başarısız. GPT destekli kişisel sınav oluşturuldu.",
+                    "score": score,
+                    "new_quiz_id": new_quiz.id
+                }
+            except ValueError:
+                return {
+                    "detail": "Zayıf konu bulunamadı, GPT sınavı oluşturulamadı.",
+                    "score": score
+                }
+            
+
+    
     return {
         "detail": "Quiz submitted successfully",
         "score": score,
         "result_id": result.id
-    }
-    
-    
-@router.post("/submit-open-ended-quiz")
-def submit_open_ended_quiz(
-    payload: SubmitQuizRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    quiz = db.query(Quiz).filter_by(id=payload.quiz_id).first()
-    if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found")
-
-    correct_count = 0
-    user_answer_objs = []
-
-    for ans in payload.answers:
-        question = db.query(Question).filter_by(id=ans.question_id).first()
-        if not question or question.question_type_id != 2:  # 2: Open-ended
-            continue
-
-        expected_answer = question.open_ended_answer.strip().lower()
-        user_answer = (ans.written_answer or "").strip().lower()
-
-        is_correct = expected_answer == user_answer
-        if is_correct:
-            correct_count += 1
-
-        user_answer_objs.append(UserAnswer(
-            question_id=question.id,
-            user_answer=ans.written_answer,
-            is_correct=is_correct
-        ))
-
-    total_questions = len(user_answer_objs)
-    score = round(correct_count / total_questions, 2) if total_questions else 0
-
-    # Sonuçları kaydet
-    result = UserQuizResult(
-        user_id=current_user.id,
-        quiz_id=quiz.id,
-        skill_id=quiz.skill_id,
-        score=score,
-        correct_count=correct_count,
-        total_questions=total_questions
-    )
-    db.add(result)
-    db.commit()
-    db.refresh(result)
-
-    for ua in user_answer_objs:
-        ua.result_id = result.id
-        db.add(ua)
-
-    db.commit()
-
-    return {
-        "result_id": result.id,
-        "score": score,
-        "correct_count": correct_count,
-        "total_questions": total_questions
     }
