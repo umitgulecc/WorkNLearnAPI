@@ -143,19 +143,27 @@ def update_my_profile(
     return user
 
 
-@router.delete("/me", status_code=200)
-def delete_my_account(
+@router.delete("/user/{user_id}", status_code=200)
+def delete_user_by_id(
+    user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Kullanıcının kendi hesabını silmesini sağlar.
+    ID'si verilen kullanıcıyı siler. (Yalnızca yetkili kullanıcılar için)
     """
-    user = db.merge(current_user)
+    # Yetki kontrolü (opsiyonel ama tavsiye edilir)
+    if current_user.role_id not in [1,2]:  # örnek: sadece adminler silebilir
+        raise HTTPException(status_code=403, detail="Bu işlemi yapma yetkiniz yok.")
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
+
     db.delete(user)
     db.commit()
-    return {"detail": "✅ Hesabınız başarıyla silindi."}
-
+    return {"detail": f"✅ Kullanıcı (id={user_id}) başarıyla silindi."}
 
 
 @router.get("/all-users", response_model=list[UserBasicOut])
