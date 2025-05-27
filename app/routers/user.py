@@ -58,7 +58,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             "id": db_user.id,
             "email": db_user.email,
             "full_name": db_user.full_name,
-            "level_id": db_user.role_id,
+            "level_id": db_user.level_id,
             "role_id": db_user.role_id
         }
     }
@@ -95,7 +95,7 @@ def get_my_profile(
         id=current_user.id,
         full_name=current_user.full_name,
         email=current_user.email,
-        level_id=current_user.role_id,
+        level_id=current_user.level_id,
         skill_scores=skill_scores
     )
     
@@ -186,7 +186,7 @@ def get_user_profile(
         id=target_user.id,
         full_name=target_user.full_name,
         email=target_user.email,
-        level_id=target_user.role_id,
+        level_id=target_user.level_id,
         skill_scores=skill_scores
     )
 

@@ -71,5 +71,4 @@ def get_quiz_review(db: Session, user_id: int, result_id: int) -> QuizReview:
         score=result.score,
         correct_count=result.correct_count,
         total_questions=result.total_questions,
-        questions=reviewed_questions
-    )
+        questions=reviewed_questions,    )

@@ -5,7 +5,7 @@ class TeamResult(BaseModel):
     user_id: int
     full_name: str
     quiz_title: str
-    score: int
+    score: float
     taken_at: datetime
     result_id: int
     class Config:

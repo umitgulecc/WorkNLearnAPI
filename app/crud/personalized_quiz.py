@@ -75,7 +75,7 @@ def create_personalized_quiz(db: Session, user_id: int):
         title="GPT Destekli Kişisel Quiz",
         description="Zayıf olduğunuz konulara göre oluşturulmuştur.",
         skill_id=user.skill_scores[0].skill_id if user.skill_scores else 1,  # varsayılan skill
-        level_id=user.role_id,
+        level_id=user.level_id,
         is_placement_test=False,
         quiz_type_id=quiz_type.id,
         is_personalized=True,

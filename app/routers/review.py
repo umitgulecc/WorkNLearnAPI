@@ -27,4 +27,4 @@ def review_quiz(
     if not has_access_to_user(current_user, target_user):
         raise HTTPException(status_code=403, detail="Bu sonucu görme yetkiniz yok.")
 
-    return get_quiz_review(db, user_id=current_user.id, result_id=result_id)
+    return get_quiz_review(db, user_id=result.user_id, result_id=result_id)
