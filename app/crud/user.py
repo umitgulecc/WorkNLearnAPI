@@ -7,9 +7,9 @@ from sqlalchemy import func
 from app.models.user_quiz_result import UserQuizResult
 
 # Kullanıcıyı oluştur
-def create_user(db: Session, email: str, full_name: str, password: str):
+def create_user(db: Session, email: str, full_name: str, password: str, role_id: int = 3, department_id: int = None):
     hashed_pw = hash_password(password)
-    user = User(email=email, full_name=full_name, password_hash=hashed_pw, level_id= 1)
+    user = User(email=email, full_name=full_name, password_hash=hashed_pw, level_id= 1, role_id= role_id, department_id=department_id)  
     db.add(user)
     db.commit()
     db.refresh(user)

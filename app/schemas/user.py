@@ -8,11 +8,14 @@ class UserCreate(BaseModel):
     email: EmailStr
     full_name: str
     password: str
+    role_id: int | None = None  # Rol ID'si opsiyonel, yönetici tarafından atanabilir
+    department_id: int | None = None  # Departman ID'si opsiyonel, yönetici tarafından atanabilir
 
 # Kullanıcı giriş formu
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    department_id: int
 
 
 class SkillScoreOut(BaseModel):
