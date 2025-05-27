@@ -27,7 +27,8 @@ class QuizQuestionOut(BaseModel):
     explanation: Optional[str]
     question_type: str
     options: List[QuestionOptionOut]
-
+    reading_passage_title: Optional[str] = None
+    reading_passage_content: Optional[str] = None
     class Config:
         from_attributes = True
 

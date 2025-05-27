@@ -67,6 +67,7 @@ def get_team_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    print(get_current_user)
     if current_user.role_id != 2:
         raise HTTPException(status_code=403, detail="Sadece departman müdürleri erişebilir.")
 
@@ -106,5 +107,5 @@ def get_team_summary(
             average_score=round(avg_score, 2),
             total_score= total_score
         ))
-
+    print(summary_list)
     return summary_list

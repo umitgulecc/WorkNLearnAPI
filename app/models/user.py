@@ -23,7 +23,7 @@ class User(Base):
 
     # ❗ back_populates eşleştirildi
     department = relationship("Department", back_populates="users", foreign_keys=[department_id])
-    quiz_results = relationship("UserQuizResult", back_populates="user")
+    quiz_results = relationship("UserQuizResult", back_populates="user", cascade="all, delete")
 
     def __repr__(self):
         return f"<User id={self.id} email={self.email} level_id={self.role_id} role_id={self.role_id} department_id={self.department_id}>"

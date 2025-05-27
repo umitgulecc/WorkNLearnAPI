@@ -48,6 +48,8 @@ def get_quiz_detail(quiz_id: int, db: Session = Depends(get_db)):
                 content=q.content,
                 explanation=q.explanation,
                 question_type=q.question_type.type_name,
+                reading_passage_title=q.reading_passage.title if q.reading_passage else None,
+                reading_passage_content=q.reading_passage.content if q.reading_passage else None,
                 options=[
                     QuestionOptionOut(id=o.id, option_text=o.option_text)
                     for o in q.options
@@ -63,9 +65,6 @@ def get_solved_quizzes(
     current_user = Depends(get_current_user)
 ):
     
-    if current_user.level_id in [2, 3]:  # 🧑‍💼 müdür veya 👑 genel müdür
-        return []  # hiçbir quiz dönme
-    # Kullanıcının çözdüğü quizlere ait en son sonuçları al
     subq = (
         db.query(
             UserQuizResult.quiz_id,

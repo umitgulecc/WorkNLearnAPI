@@ -13,7 +13,7 @@ from app.auth.auth import create_access_token
 from app.schemas.user import UserUpdate
 from app.schemas.user import UserBasicOut
 from app.crud.user import get_all_users
-from app.utils.permissions import has_access_to_user, is_manager
+from app.utils.permissions import has_access_to_user, is_admin
 from app.schemas.user import ForgotPasswordRequest, ResetPasswordRequest
 from app.utils.token import create_reset_token, verify_reset_token
 
@@ -26,6 +26,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 @router.post("/register")
 def register(
@@ -45,6 +46,7 @@ def register(
     created_user = create_user(db, user.email, user.full_name, user.password, user.role_id, user.department_id)
     
     return {
+        "success": True,  # 🔧 bunu ekle
         "message": f"✅ Kayıt başarılı. Hoş geldiniz, {created_user.full_name}!",
         "user": {
             "id": created_user.id,
@@ -63,7 +65,8 @@ def login(request: UserLogin, db: Session = Depends(get_db)):
     if not db_user or not verify_password(request.password, db_user.password_hash):
         raise HTTPException(status_code=401, detail="E-posta veya şifre hatalı.")
 
-    if db_user.department_id != request.department_id:
+    # 🔐 Sadece admin dışı roller için departman kontrolü
+    if db_user.role_id != 1 and db_user.department_id != request.department_id:
         raise HTTPException(status_code=403, detail="Departman bilgisi uyuşmuyor.")
 
     token = create_access_token(data={"sub": db_user.email})
@@ -82,8 +85,6 @@ def login(request: UserLogin, db: Session = Depends(get_db)):
         }
     }
 
-    
-    
 # @router.get("/me", response_model=UserResponse)
 # def get_my_profile(current_user: User = Depends(get_current_user)):
 #     return current_user
@@ -172,7 +173,7 @@ def list_all_users(
     current_user: User = Depends(get_current_user)
 ):
     # ✅ Erişim kontrolü: yalnızca Genel Müdür görebilir
-    if not is_manager(current_user):
+    if not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Bu veriye yalnızca genel müdür erişebilir.")
 
     return get_all_users(db)
@@ -259,3 +260,19 @@ def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db))
 def get_departments(db: Session = Depends(get_db)):
     departments = db.query(Department).all()
     return [{"id": d.id, "name": d.name} for d in departments]
+
+
+@router.get("/users/by-department")
+def get_users_by_department(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    users = db.query(User).filter(User.department_id == current_user.department_id).all()
+    return [  # sadeleştirilmiş JSON
+        {
+            "id": user.id,
+            "full_name": user.full_name,
+            "level_id": user.level_id,
+            "email": user.email
+        } for user in users if user.role_id == 3  # sadece çalışanlar
+    ]

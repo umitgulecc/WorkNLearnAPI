@@ -55,11 +55,9 @@ def update_user_password(db: Session, user_id: int, new_password: str):
 
 def get_all_users(db: Session):
     """
-    Tüm kullanıcıları getirir.
-    (Yönetici sayfası, test, analiz vs. için kullanılabilir)
+    Sadece role_id'si NULL olan kullanıcıları getirir.
     """
-    return db.query(User).all()
-
+    return db.query(User).filter(User.role_id != 1).all()
 
 def delete_user(db: Session, user_id: int):
     """

@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 class UserQuizResult(Base):
     __tablename__ = "user_quiz_results"
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey(User.id))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     quiz_id = Column(Integer, ForeignKey(Quiz.id))
     skill_id = Column(Integer, ForeignKey(Skill.id))
     score = Column(Float)
@@ -16,7 +16,7 @@ class UserQuizResult(Base):
     taken_at = Column(DateTime)
 
     answers = relationship("UserAnswer", backref="result", cascade="all, delete-orphan")  # ✅ BURASI EKLENECEK
-    user = relationship("User", back_populates="quiz_results")
+    user = relationship("User", back_populates="quiz_results", passive_deletes=True)
     quiz = relationship("Quiz", back_populates="results")
     
     def __repr__(self):
