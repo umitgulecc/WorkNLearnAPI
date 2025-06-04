@@ -1,7 +1,4 @@
-# app/ai/gpt.py
-
 def generate_questions(prompt: str) -> list[dict]:
-    # GPT’den beklenen örnek yapı
     return [
         {
             "question": "What is the correct way to greet in a business email?",
@@ -14,5 +11,5 @@ def generate_questions(prompt: str) -> list[dict]:
             "explanation": "In business emails, formal greetings are preferred.",
             "topic_id": 1
         },
-        # Daha fazla ekleyebilirsin
+        # Burada GPT'den ücretli token ile soru ve quiz alıyorduk ancak çok maliyetli olunca yapıyı bozduk.
     ]

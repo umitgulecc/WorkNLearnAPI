@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Text
 from sqlalchemy.orm import relationship
-from app.database import Base  # varsayım: tüm modeller Base'den türetiliyor
+from app.database import Base
 
 class ReadingPassage(Base):
     __tablename__ = "reading_passages"

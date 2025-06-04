@@ -1,3 +1,4 @@
+# GPT yerine sabit data kullanarak sorular oluşturur.(GPT Maliyetli olduğu için)
 def generate_questions_with_gpt(topics=None):
     return [
         {

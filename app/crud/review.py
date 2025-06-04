@@ -36,7 +36,7 @@ def get_quiz_review(db: Session, user_id: int, result_id: int) -> QuizReview:
     for question in questions:
         selected = answer_map.get(question.id)
 
-        if question.question_type_id == 1:  # Multiple Choice
+        if question.question_type_id == 1:  # Çoktan seçmeli
             reviewed_questions.append(ReviewedQuestion(
                 id=question.id,
                 content=question.content,
@@ -52,7 +52,7 @@ def get_quiz_review(db: Session, user_id: int, result_id: int) -> QuizReview:
                 ]
             ))
 
-        elif question.question_type_id == 2:  # Open-ended
+        elif question.question_type_id == 2:  # Açık uçlu
             reviewed_questions.append(ReviewedQuestion(
                 id=question.id,
                 content=question.content,
@@ -61,7 +61,7 @@ def get_quiz_review(db: Session, user_id: int, result_id: int) -> QuizReview:
                 user_answer=selected.user_answer if selected else None,
                 expected_answer=question.open_ended_answer,
                 is_correct=selected.is_correct if selected else None,
-                options=[]  # Open-ended için opsiyon yok
+                options=[]
             ))
 
     return QuizReview(

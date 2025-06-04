@@ -22,7 +22,6 @@ def review_quiz(
     if not result:
         raise HTTPException(status_code=404, detail="Sonuç bulunamadı.")
 
-    # ⛔ Yetki kontrolü (target → User nesnesi olmalı)
     target_user = db.query(User).filter_by(id=result.user_id).first()
     if not has_access_to_user(current_user, target_user):
         raise HTTPException(status_code=403, detail="Bu sonucu görme yetkiniz yok.")

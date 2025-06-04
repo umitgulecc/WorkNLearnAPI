@@ -15,10 +15,9 @@ from app.models.question_option import QuestionOption
 from app.models.topic import Topic
 from app.models.question_type import QuestionType
 from app.models.user import User
-
 from sqlalchemy.orm import Session
 
-# 1️⃣ Zayıf konularını getir
+
 def get_user_weak_topics(db: Session, user_id: int, limit: int = 3):
     from app.models.user_topic_stat import UserTopicStat
     return (
@@ -29,9 +28,8 @@ def get_user_weak_topics(db: Session, user_id: int, limit: int = 3):
         .all()
     )
 
-# 2️⃣ Dummy GPT fonksiyonu: bu kısmı sonra OpenAI API ile güncelleriz
+# Dummy GPT fonksiyonu: bu kısmı önceden GPT ile entegreydi. Maliyetten ötürü fonksiyonumuzu değiştirdik.
 def generate_questions_with_gpt(topics: list[Topic]):
-    # Örnek dummy veri
     return [
         {
             "content": f"What is {topic.name} in a business context?",
@@ -49,32 +47,27 @@ def generate_questions_with_gpt(topics: list[Topic]):
         for topic in topics
     ]
 
-# 3️⃣ Quiz ve sorularını veritabanına kaydet
+#Quiz ve sorularını veritabanına kaydet
 def create_personalized_quiz(db: Session, user_id: int):
-    # Kullanıcının zayıf olduğu konuları al
     weak_stats = get_user_weak_topics(db, user_id)
     if not weak_stats:
         return None
 
-    # Kullanıcı nesnesi alınmalı çünkü level ve skill id'ye ihtiyacımız var
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
 
-    # Zayıf olunan konulara göre GPT'den sorular üret
     topics = db.query(Topic).filter(Topic.id.in_([ws.topic_id for ws in weak_stats])).all()
     questions_data = generate_questions_with_gpt(topics)
 
-    # Quiz türünü al
     quiz_type = db.query(QuizType).filter(QuizType.name == "GPT Destekli Geliştirme Testleri").first()
     if not quiz_type:
         raise HTTPException(status_code=400, detail="GPT Destekli quiz türü tanımlı değil.")
 
-    # Yeni quiz oluştur
     new_quiz = Quiz(
         title="GPT Destekli Kişisel Quiz",
         description="Zayıf olduğunuz konulara göre oluşturulmuştur.",
-        skill_id=user.skill_scores[0].skill_id if user.skill_scores else 1,  # varsayılan skill
+        skill_id=user.skill_scores[0].skill_id if user.skill_scores else 1,
         level_id=user.level_id,
         is_placement_test=False,
         quiz_type_id=quiz_type.id,
@@ -86,7 +79,6 @@ def create_personalized_quiz(db: Session, user_id: int):
     db.commit()
     db.refresh(new_quiz)
 
-    # Soru tipi (varsayılan olarak multiple choice kullanıyoruz)
     question_type = db.query(QuestionType).filter(QuestionType.id == 1).first()
 
     for q in questions_data:
@@ -95,7 +87,7 @@ def create_personalized_quiz(db: Session, user_id: int):
             content=q["content"],
             topic_id=q["topic_id"],
             question_type_id=question_type.id,
-            explanation=q.get("explanation", "GPT tarafından otomatik oluşturulmuştur.")  # ✅ burada
+            explanation=q.get("explanation", "GPT tarafından otomatik oluşturulmuştur.")
 
         )
         db.add(question)
@@ -113,25 +105,22 @@ def create_personalized_quiz(db: Session, user_id: int):
     return new_quiz
 
 
-
+# Kullanıcıya özel yerleştirme testi oluşturma
 def create_personalized_placement_quiz(db: Session, user) -> Quiz:
-    # Kullanıcının zayıf topic'lerini çek
-    weak_stats = db.query(Topic).limit(1).all()  # Sahte veriyle test için
+    weak_stats = db.query(Topic).limit(1).all()#Test için geçici olarak bir tane topic alıyoruz
     if not weak_stats:
         return None
 
     topics = db.query(Topic).filter(Topic.id.in_([t.id for t in weak_stats])).all()
     questions_data = generate_questions_with_gpt(topics)
 
-    # Gerekli metadata
     quiz_type_id = db.query(QuizType).filter(QuizType.name == "GPT Destekli Yerleştirme Testleri").first().id
     question_type = db.query(QuestionType).filter(QuestionType.id == 1).first()
 
-    # Quiz oluştur
     new_quiz = Quiz(
         title="Kişisel Yerleştirme Testi (GPT)",
         description="GPT tarafından zayıf olduğunuz konulara göre oluşturulmuştur.",
-        skill_id=user.level_id,  # veya user.skill_id varsa onu kullan
+        skill_id=user.skill_id,
         level_id=user.level_id,
         is_placement_test=True,
         quiz_type_id=quiz_type_id,
@@ -142,7 +131,6 @@ def create_personalized_placement_quiz(db: Session, user) -> Quiz:
     db.commit()
     db.refresh(new_quiz)
 
-    # Soruları ekle
     for q in questions_data:
         question = Question(
             quiz_id=new_quiz.id,
@@ -151,7 +139,7 @@ def create_personalized_placement_quiz(db: Session, user) -> Quiz:
             question_type_id=question_type.id
         )
         db.add(question)
-        db.flush()  # ID almak için refresh yerine daha uygun
+        db.flush() 
 
 
         for opt in q["options"]:

@@ -8,38 +8,28 @@ from app.models.quiz import Quiz
 from app.models.user_quiz_result import UserQuizResult
 from app.auth.auth import get_current_user
 from app.schemas.team import TeamMemberSummary,TeamResult
+from app.database import get_db
+
 
 router = APIRouter(prefix="/team", tags=["👥 Takım"])
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        
-        
+    
 @router.get("/results/{user_id}", response_model=list[TeamResult])
 def get_results_for_user(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Sadece müdür erişebilir
     if current_user.role_id != 2:
         raise HTTPException(status_code=403, detail="Sadece müdürler erişebilir.")
 
-    # Müdürün yönettiği departmanı bul
     department = db.query(Department).filter(Department.manager_id == current_user.id).first()
     if not department:
         raise HTTPException(status_code=404, detail="Departman bulunamadı.")
 
-    # Seçilen kullanıcı bu departmana ait mi?
     user = db.query(User).filter(User.id == user_id).first()
     if not user or user.department_id != department.id:
         raise HTTPException(status_code=403, detail="Bu kullanıcı sizin departmanınıza ait değil.")
 
-    # Bu kullanıcıya ait tüm sonuçları al
     results = (
         db.query(UserQuizResult)
         .join(Quiz, UserQuizResult.quiz_id == Quiz.id)
@@ -75,7 +65,6 @@ def get_team_summary(
     if not department:
         return []
 
-    # ⛔ Sadece çalışanlar (role_id == 3)
     users = (
         db.query(User)
         .filter(
@@ -97,7 +86,7 @@ def get_team_summary(
             avg_score = 0.0
             quiz_count = 0
 
-        level_str = f"Seviye {user.level_id}"  # ✅ artık level_id doğrudan seviye numarası
+        level_str = f"Seviye {user.level_id}"
 
         summary_list.append(TeamMemberSummary(
             user_id=user.id,

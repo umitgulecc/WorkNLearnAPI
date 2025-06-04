@@ -17,11 +17,11 @@ class User(Base):
     level_id = Column(Integer, ForeignKey(Level.id))
     role_id = Column(Integer, ForeignKey(Role.id))
     department_id = Column(Integer, ForeignKey("departments.id"))
+    
+    
     skill_scores = relationship("UserSkillScore", back_populates="user")
     role = relationship("Role", back_populates="users")
     quizzes = relationship("Quiz", back_populates="owner_user")
-
-    # ❗ back_populates eşleştirildi
     department = relationship("Department", back_populates="users", foreign_keys=[department_id])
     quiz_results = relationship("UserQuizResult", back_populates="user", cascade="all, delete")
 

@@ -9,7 +9,7 @@ class UserAnswer(Base):
     id = Column(Integer, primary_key=True)
     result_id = Column(Integer, ForeignKey(UserQuizResult.id), nullable=False)
     question_id = Column(Integer, ForeignKey(Question.id), nullable=False)
-    user_answer = Column(Text, nullable=True)# Açık uçlu cevabı buraya yazarız
+    user_answer = Column(Text, nullable=True)
     selected_option_id = Column(Integer, ForeignKey("question_options.id"), nullable=True)
     is_correct = Column(Boolean, default=False)
     

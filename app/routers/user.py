@@ -16,17 +16,9 @@ from app.crud.user import get_all_users
 from app.utils.permissions import has_access_to_user, is_admin
 from app.schemas.user import ForgotPasswordRequest, ResetPasswordRequest
 from app.utils.token import create_reset_token, verify_reset_token
+from app.database import get_db
 
-router = APIRouter(prefix="", tags=["🧍 Kullanıcı İşlemleri"])  # <-- BU SATIR ÇOK ÖNEMLİ
-
-# Veritabanı bağlantısı
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+router = APIRouter(prefix="", tags=["🧍 Kullanıcı İşlemleri"])
 
 @router.post("/register")
 def register(
@@ -34,19 +26,16 @@ def register(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # ⛔ Sadece role_id 1 (admin) veya 2 (müdür) izinli
     if current_user.role_id not in [1, 2]:
         raise HTTPException(status_code=403, detail="Bu işlemi yapma yetkiniz yok.")
 
-    # Zaten kayıtlı mı?
     if get_user_by_email(db, user.email):
         raise HTTPException(status_code=400, detail="❌ Bu e-posta adresi zaten kayıtlı.")
     
-    # Yeni kullanıcı oluştur
     created_user = create_user(db, user.email, user.full_name, user.password, user.role_id, user.department_id)
     
     return {
-        "success": True,  # 🔧 bunu ekle
+        "success": True, 
         "message": f"✅ Kayıt başarılı. Hoş geldiniz, {created_user.full_name}!",
         "user": {
             "id": created_user.id,
@@ -65,7 +54,6 @@ def login(request: UserLogin, db: Session = Depends(get_db)):
     if not db_user or not verify_password(request.password, db_user.password_hash):
         raise HTTPException(status_code=401, detail="E-posta veya şifre hatalı.")
 
-    # 🔐 Sadece admin dışı roller için departman kontrolü
     if db_user.role_id != 1 and db_user.department_id != request.department_id:
         raise HTTPException(status_code=403, detail="Departman bilgisi uyuşmuyor.")
 
@@ -153,8 +141,7 @@ def delete_user_by_id(
     """
     ID'si verilen kullanıcıyı siler. (Yalnızca yetkili kullanıcılar için)
     """
-    # Yetki kontrolü (opsiyonel ama tavsiye edilir)
-    if current_user.role_id not in [1,2]:  # örnek: sadece adminler silebilir
+    if current_user.role_id not in [1,2]: 
         raise HTTPException(status_code=403, detail="Bu işlemi yapma yetkiniz yok.")
 
     user = db.query(User).filter(User.id == user_id).first()
@@ -172,7 +159,6 @@ def list_all_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # ✅ Erişim kontrolü: yalnızca Genel Müdür görebilir
     if not is_admin(current_user):
         raise HTTPException(status_code=403, detail="Bu veriye yalnızca genel müdür erişebilir.")
 
@@ -190,11 +176,9 @@ def get_user_profile(
     if not target_user:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
 
-    # Yetki kontrolü
     if not has_access_to_user(current_user, target_user):
         raise HTTPException(status_code=403, detail="Bu kullanıcıya erişim yetkiniz yok.")
 
-    # Skill skorlarıyla birlikte profili oluştur
     scores = (
         db.query(UserSkillScore, Skill)
         .join(Skill, UserSkillScore.skill_id == Skill.id)
@@ -231,7 +215,6 @@ def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db
     
     reset_token = create_reset_token(user.email)
 
-    # Gerçek projede bu link mail ile gönderilmeli
     reset_url = f"http://localhost:8000/reset-password?token={reset_token}"
     print("🔗 Şifre sıfırlama bağlantısı:", reset_url)
 
@@ -268,11 +251,11 @@ def get_users_by_department(
     current_user: User = Depends(get_current_user)
 ):
     users = db.query(User).filter(User.department_id == current_user.department_id).all()
-    return [  # sadeleştirilmiş JSON
+    return [
         {
             "id": user.id,
             "full_name": user.full_name,
             "level_id": user.level_id,
             "email": user.email
-        } for user in users if user.role_id == 3  # sadece çalışanlar
+        } for user in users if user.role_id == 3
     ]

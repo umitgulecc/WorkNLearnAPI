@@ -1,8 +1,7 @@
 from sqlalchemy import Column, DateTime, Float, Integer, String, Boolean, ForeignKey, Text
-from app.database import Base  # veya direkt sqlalchemy.declarative_base() kullanıyorsan ona göre
+from app.database import Base
 from app.models.quiz import Quiz
 from app.models.skill import Skill
-from app.models.user import User 
 from sqlalchemy.orm import relationship
 class UserQuizResult(Base):
     __tablename__ = "user_quiz_results"
@@ -15,7 +14,7 @@ class UserQuizResult(Base):
     total_questions = Column(Integer)
     taken_at = Column(DateTime)
 
-    answers = relationship("UserAnswer", backref="result", cascade="all, delete-orphan")  # ✅ BURASI EKLENECEK
+    answers = relationship("UserAnswer", backref="result", cascade="all, delete-orphan")
     user = relationship("User", back_populates="quiz_results", passive_deletes=True)
     quiz = relationship("Quiz", back_populates="results")
     

@@ -13,6 +13,8 @@ from app.models.user_quiz_result import UserQuizResult
 from app.schemas.submission import SubmitQuizRequest
 from app.models.user import User
 from app.crud.personalized_quiz import create_personalized_placement_quiz
+
+
 router = APIRouter(tags=["📤 Quiz Gönderimi"])
 LEVEL_UP_SCORE_THRESHOLD = 20 
 
@@ -47,15 +49,13 @@ def submit_quiz(
     total_score = get_user_total_score(db, current_user.id)
 
     if total_score >= LEVEL_UP_SCORE_THRESHOLD:
-        # Bu kullanıcı artık seviye atlama sınavına girmeye hak kazandı.
-        # İlgili yerleştirme sınavına yönlendirme yapılabilir
         print("✅ Level-up placement test için hazır!")
         
     
-    LEVEL_PASS_SCORE = 0.7  # geçme barajı
+    LEVEL_PASS_SCORE = 0.7
     NEXT_LEVEL_ID = current_user.level_id + 1
 
-    if quiz.quiz_type_id == 1:
+    if quiz.quiz_type_id == 1: # Yerleştirme sınavı
         if score >= LEVEL_PASS_SCORE:
             update_user_level(db, current_user.id, NEXT_LEVEL_ID)
             print("✅ Seviye atladı!")

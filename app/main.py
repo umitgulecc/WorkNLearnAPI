@@ -8,12 +8,11 @@ from app.routers import user, quiz, submission, review, personalized_quiz, team,
 app = FastAPI( 
     title="WORK-N-LEARN API",
     description="İş İngilizcesi öğrenme sistemine ait tüm endpoint dokümantasyonu",
-    version="1.0.0"
+    version="1.9.4"
     )
 
 Base.metadata.create_all(bind=engine)
 
-# Ana endpoint
 @app.get("/")
 def root():
     return {"message": "WORK-N-LEARN API çalışıyor!"}

@@ -24,13 +24,14 @@ def list_quizzes(
     quizzes = get_quizzes_by_filters(
         db=db,
         user_level_id=current_user.level_id,
-        current_user_id=current_user.id,  # ✅ yeni parametre
+        current_user_id=current_user.id,
         quiz_type_id=quiz_type_id,
         skill_id=skill_id,
         level_id=level_id,
         exclude_solved_by_user_id=current_user.id
     )
     return quizzes
+
 
 @router.get("/quiz/{quiz_id}", response_model=QuizDetailOut)
 def get_quiz_detail(quiz_id: int, db: Session = Depends(get_db)):

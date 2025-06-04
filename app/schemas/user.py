@@ -1,22 +1,17 @@
-# User Tablosu Pydantic şema
-
-
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
-# Kullanıcı kayıt formu şeması
 class UserCreate(BaseModel):
     email: EmailStr
     full_name: str
     password: str
-    role_id: int | None = None  # Rol ID'si opsiyonel, yönetici tarafından atanabilir
-    department_id: int | None = None  # Departman ID'si opsiyonel, yönetici tarafından atanabilir
+    role_id: int | None = None
+    department_id: int | None = None 
 
-# Kullanıcı giriş formu
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-    department_id: Optional[int] = None  # ✅ opsiyonel hale getirildi
+    department_id: Optional[int] = None
 
 
 class SkillScoreOut(BaseModel):
@@ -32,7 +27,7 @@ class UserProfile(BaseModel):
     skill_scores: list[SkillScoreOut]
 
     class Config:
-        from_attributes = True  # eski adı orm_mode
+        from_attributes = True
         
         
 class UserUpdate(BaseModel):

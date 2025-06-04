@@ -32,12 +32,10 @@ def generate_personalized_placement_quiz(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # GPT destekli kişisel placement test oluştur
     quiz = create_personalized_placement_quiz(db, current_user)
     if not quiz:
         raise HTTPException(status_code=400, detail="Quiz oluşturulamadı.")
 
-    # Quiz detaylarını joinedload ile birlikte çek
     detailed_quiz = get_quiz_with_questions(db, quiz.id)
     if not detailed_quiz:
         raise HTTPException(status_code=404, detail="Quiz verisi yüklenemedi.")

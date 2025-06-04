@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 
-SECRET_KEY = "SECRET_RESET_KEY"
+SECRET_KEY = "AAAAAA_BBBBB_CCC"
 ALGORITHM = "HS256"
 
 def create_reset_token(email: str, expires_minutes: int = 30):
@@ -12,6 +12,6 @@ def create_reset_token(email: str, expires_minutes: int = 30):
 def verify_reset_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload.get("sub")  # e-mail döner
+        return payload.get("sub")
     except JWTError:
         return None

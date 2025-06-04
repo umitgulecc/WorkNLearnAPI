@@ -16,9 +16,9 @@ def has_access_to_user(viewer: User, target: User) -> bool:
     target → erişilmek istenen kullanıcı
     """
     if viewer.id == target.id:
-        return True  # kendi verisine erişebilir
+        return True
     if is_admin(viewer):
-        return True  # admin her şeye erişebilir
+        return True
     if is_manager(viewer) and viewer.department_id == target.department_id:
-        return True  # müdür kendi bölümündekileri görebilir
+        return True
     return False

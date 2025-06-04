@@ -5,6 +5,7 @@ from app.models.user import User
 
 class UserTopicStat(Base):
     __tablename__ = "user_topic_stats"
+    
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey(User.id), nullable=False)
     topic_id = Column(Integer, ForeignKey(Topic.id), nullable=False)

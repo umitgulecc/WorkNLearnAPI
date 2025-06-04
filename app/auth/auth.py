@@ -6,9 +6,9 @@ from app.database import SessionLocal
 from app.crud.user import get_user_by_email
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
+from app.database import get_db
 
-# Güvenlik için kullanılacak gizli anahtar
-SECRET_KEY = "cok-gizli-bir-anahtar"
+SECRET_KEY = "aaa-bbbbb-ccc-ddddddd"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 gün
 
@@ -19,28 +19,22 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# Token'ı çözüp içinden kullanıcıyı bulur
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+
+
+
+# Token'ı çözüp içinden kullanıcıyı bulur(Alt Fonksiyon)
 def verify_token(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload["sub"]
     except JWTError:
         return None
-
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
-
-# DB bağımlılığı
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+    
 # Kullanıcıyı token'dan çöz
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    from app.auth.auth import verify_token  # döngüsel import'ı engellemek için
+    from app.auth.auth import verify_token
 
     email = verify_token(token)
     if email is None:

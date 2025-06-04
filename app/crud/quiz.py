@@ -16,7 +16,7 @@ def get_quizzes_by_filters(
     quiz_type_id=None,
     skill_id=None,
     level_id=None,
-    exclude_solved_by_user_id: int | None = None  # 🔥 Burayı ekle
+    exclude_solved_by_user_id: int | None = None
 ):
     query = db.query(Quiz).filter(
         ((Quiz.level_id <= user_level_id) | (Quiz.is_placement_test == True)) &
@@ -33,7 +33,6 @@ def get_quizzes_by_filters(
     if level_id is not None:
         query = query.filter(Quiz.level_id == level_id)
 
-    # 🔒 Çözdüğü quizleri dışla
     if exclude_solved_by_user_id:
         from app.models.user_quiz_result import UserQuizResult
         solved_quiz_ids = db.query(UserQuizResult.quiz_id).filter(

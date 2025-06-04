@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Boolean, ForeignKey, Text
-from app.database import Base  # veya direkt sqlalchemy.declarative_base() kullanıyorsan ona göre
+from app.database import Base 
 from app.models.question import Question
 
 

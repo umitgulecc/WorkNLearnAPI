@@ -1,0 +1,100 @@
+# WorknLearn Backend
+
+Bu proje, WorknLearn platformunun backend (sunucu tarafı) uygulamasıdır. FastAPI framework’ü kullanılarak geliştirilmiştir. Kullanıcıların seviye tabanlı quiz çözme, ilerleme takibi, kişisel gelişim analizi ve GPT destekli özelleştirilmiş sınavlar gibi birçok işlevi desteklemektedir.
+
+## 📁 Proje Dosya Yapısı
+
+app/
+├── ai/ # GPT entegrasyonu
+│ └── gpt.py
+├── auth/ # Yetkilendirme işlemleri
+│ └── auth.py
+├── crud/ # Veritabanı CRUD işlemleri
+│ ├── personalized_quiz.py
+│ ├── progress.py
+│ ├── quiz.py
+│ ├── review.py
+│ ├── submission.py
+│ ├── user.py
+│ └── user_result.py
+├── models/ # SQLAlchemy modelleri
+│ ├── department.py
+│ ├── level.py
+│ ├── question.py
+│ ├── question_option.py
+│ ├── quiz.py
+│ ├── user.py
+│ └── ...
+├── routers/ # API uç noktaları
+│ ├── personalized_quiz.py
+│ ├── quiz.py
+│ ├── review.py
+│ ├── submission.py
+│ ├── team.py
+│ └── user.py
+├── schemas/ # Pydantic şemaları
+│ ├── quiz.py
+│ ├── review.py
+│ └── ...
+├── services/ # Harici servis entegrasyonları (örn. GPT)
+│ └── gpt.py
+├── utils/ # Yardımcı fonksiyonlar
+│ ├── password.py
+│ ├── permissions.py
+│ └── token.py
+├── database.py # Veritabanı bağlantısı
+├── main.py # FastAPI uygulama girişi
+└── init.py
+
+
+## 🚀 Başlangıç
+
+### Gereksinimler
+
+	- Python 3.12
+	- FastAPI
+	- SQLAlchemy
+	- Pydantic
+	- Uvicorn
+	requirements.txt klasoru içerisinde bütün gereksinimler ve kütüphanelerden bahsedilmiştir.
+
+### Kurulum
+
+	1. Gerekli paketleri yükleyin:
+  	  ```bash
+   	  pip install -r requirements.txt
+
+	2. Sunucuyu çalıştırın:
+   	  uvicorn app.main:app --reload
+
+
+
+### Ortam Değişkenleri
+	.env dosyasında API anahtarları, veritabanı URL'si gibi bilgileri tanımlayın.
+
+🔧 Geliştirme Notları
+	crud/ klasörü veri işlemlerinden sorumludur.
+
+	routers/ klasöründe, frontend ile konuşan endpoint’ler bulunur.
+
+	schemas/ dosyaları istek/yanıt modellerini içerir.
+
+	models/ tüm tablo tanımlarını barındırır.
+
+📌 Özellikler
+	JWT tabanlı kullanıcı doğrulama
+
+	Çoktan seçmeli ve açık uçlu quiz sistemi
+
+	GPT destekli kişisel quiz üretimi
+
+	Kullanıcı seviye sistemi ve istatistiksel analiz
+
+	Departman bazlı yönetim ve yetkilendirme
+
+📂 Pycache Klasörleri
+	Tüm __pycache__ klasörleri proje tarafından otomatik oluşturulur, sürüm kontrolüne dahil edilmesi gerekmez. .gitignore dosyasına eklenmelidir.
+
+
+Hazırlayan: ÜMİT GÜLEÇ
+Tarih: 4 Haziran 2025

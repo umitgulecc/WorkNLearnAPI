@@ -60,7 +60,7 @@ def evaluate_answers(questions: list, answers: list[UserAnswerIn]) -> tuple[list
 #     - UserAnswer kayıtlarını toplu şekilde ekler
 #     - Skor hesaplayıp geri döner
 def save_user_quiz_result(db, user_id, quiz, evaluated_answers, correct_count):
-    total_questions = len(quiz.questions)  # 🔧 Burayı düzelttik
+    total_questions = len(quiz.questions) 
     score = round(correct_count / total_questions, 2) if total_questions else 0
 
     result = UserQuizResult(

@@ -16,11 +16,9 @@ class ReviewedQuestion(BaseModel):
     question_type: str
     explanation: str
 
-    # Multiple-choice için
     user_selected_option_id: Optional[int] = None
     options: List[ReviewedOption] = []
 
-    # Open-ended için
     user_answer: Optional[str] = None
     expected_answer: Optional[str] = None
     is_correct: Optional[bool] = None

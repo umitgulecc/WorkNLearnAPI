@@ -1,10 +1,11 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text
 from sqlalchemy.orm import relationship
-from app.database import Base  # veya direkt sqlalchemy.declarative_base() kullanıyorsan ona göre
+from app.database import Base
 from app.models.skill import Skill
 from app.models.level import Level
-from app.models.quiz_type import QuizType  # QuizType modelini ekle
-from app.models.user import User  # User modelini ekle
+from app.models.quiz_type import QuizType
+from app.models.user import User 
+
 class Quiz(Base):
     __tablename__ = "quizzes"
     id = Column(Integer, primary_key=True)
